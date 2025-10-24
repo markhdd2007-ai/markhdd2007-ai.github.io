@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple URL Opener</title>
+</head>
+<body>
+
+    <h1>URL Generator</h1>
+
+    <label for="codeInput">Enter Your Code/ID:</label><br>
+    <input type="text" id="codeInput" placeholder="e.g., 123456"><br><br>
+
+    <button onclick="openNewTab()">Open URL</button>
+
+    <script>
+        function openNewTab() {
+            // **Important:** Replace 'https://example.com/item/' with your desired **safe and non-explicit** base URL.
+            const baseURL = 'https://nhentai.net/g/';
+            const code = document.getElementById('codeInput').value;
+
+            if (code) {
+                const finalURL = baseURL + code;
+                window.open(finalURL, '_blank');
+            } else {
+                alert('Please enter a code.');
+            }
+        }
+    </script>
+
+</body>
+</html>
