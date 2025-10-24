@@ -1,31 +1,69 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+
+<html lang="en">
 <head>
-    <title>Simple URL Opener</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>nhentai - Quick Code Opener</title>
+  <style>
+    :root{font-family:Inter,system-ui,Arial,Helvetica,sans-serif}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0f172a;color:#e6eef8}
+    .card{width:100%;max-width:520px;padding:28px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));box-shadow:0 6px 30px rgba(2,6,23,0.6)}
+    h1{margin:0 0 10px;font-size:20px}
+    p{margin:0 0 18px;color:#a9b6c7}
+    .row{display:flex;gap:8px}
+    input[type="text"]{flex:1;padding:12px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:inherit;font-size:16px}
+    button{padding:12px 16px;border-radius:8px;border:0;background:#2563eb;color:white;font-weight:600;cursor:pointer}
+    .hint{margin-top:12px;color:#9fb0ce;font-size:13px}
+    .error{color:#ffb4b4;margin-top:10px}
+    footer{margin-top:14px;font-size:12px;color:#6f8aa6}
+  </style>
 </head>
 <body>
+  <main class="card">
+    <h1>Quick nhentai code opener</h1>
+    <p>Type the numeric gallery code (example: <code>123456</code>) and press Open. The gallery will open in a new tab.</p><div class="row">
+  <input id="codeInput" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Enter gallery code (numbers only)" autofocus />
+  <button id="openBtn">Open</button>
+</div>
 
-    <h1>URL Generator</h1>
+<div class="hint">Only numeric codes are allowed. This tool just constructs a URL and opens it in a new tab.</div>
+<div id="msg" class="error" aria-live="polite"></div>
 
-    <label for="codeInput">Enter Your Code/ID:</label><br>
-    <input type="text" id="codeInput" placeholder="e.g., 123456"><br><br>
+<footer>Note: nhentai.net contains adult content. Use responsibly.</footer>
 
-    <button onclick="openNewTab()">Open URL</button>
+  </main>  <script>
+    const input = document.getElementById('codeInput');
+    const btn = document.getElementById('openBtn');
+    const msg = document.getElementById('msg');
 
-    <script>
-        function openNewTab() {
-            // **Important:** Replace 'https://example.com/item/' with your desired **safe and non-explicit** base URL.
-            const baseURL = 'https://nhentai.net/g/';
-            const code = document.getElementById('codeInput').value;
+    function clearMsg(){ msg.textContent = ''; }
 
-            if (code) {
-                const finalURL = baseURL + code;
-                window.open(finalURL, '_blank');
-            } else {
-                alert('Please enter a code.');
-            }
-        }
-    </script>
+    function openGallery(){
+      clearMsg();
+      const raw = input.value.trim();
+      if(!raw){ msg.textContent = 'Please enter a code.'; return; }
 
-</body>
+      // Accept only digits (common for nhentai gallery codes)
+      const match = raw.match(/^\d+$/);
+      if(!match){ msg.textContent = 'Invalid code — only numbers are allowed.'; return; }
+
+      const code = match[0];
+      const url = `https://nhentai.net/g/${encodeURIComponent(code)}/`;
+
+      // Open in a new tab and disassociate for safety
+      const newWin = window.open(url, '_blank', 'noopener,noreferrer');
+      if(!newWin){ msg.textContent = 'Blocked popup. Please allow popups for this page.'; }
+      else newWin.opener = null;
+
+      // optionally clear the field
+      // input.value = '';
+    }
+
+    btn.addEventListener('click', openGallery);
+    input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') openGallery(); });
+
+    // small UX: remove error when typing
+    input.addEventListener('input', clearMsg);
+  </script></body>
 </html>
