@@ -5,7 +5,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 500px;
+            max-width: 1200px;
             margin: 50px auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -19,6 +19,7 @@
         h1 {
             color: #333;
             text-align: center;
+            margin-bottom: 30px;
         }
         label {
             font-weight: bold;
@@ -37,19 +38,90 @@
             border-color: #ff6b6b;
             outline: none;
         }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
         button {
-            background-color: #ff6b6b;
-            color: white;
-            padding: 12px 30px;
+            flex: 1;
+            padding: 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            width: 100%;
             transition: background-color 0.3s;
         }
-        button:hover {
+        .primary-btn {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        .primary-btn:hover {
             background-color: #ff5252;
+        }
+        .secondary-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        .secondary-btn:hover {
+            background-color: #545b62;
+        }
+        .sauce-list {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .sauce-list h3 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #ff6b6b;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .open-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .open-btn:hover {
+            background-color: #218838;
+        }
+        .rating {
+            font-weight: bold;
+        }
+        .rating-10 { color: #28a745; }
+        .rating-9 { color: #20c997; }
+        .rating-8 { color: #17a2b8; }
+        .rating-7 { color: #6c757d; }
+        .rating-low { color: #dc3545; }
+        .search-box {
+            margin-bottom: 15px;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
         .note {
             font-size: 12px;
@@ -66,7 +138,30 @@
         <label for="codeInput">Enter 6-digit Code:</label>
         <input type="text" id="codeInput" placeholder="e.g., 177013" maxlength="6" onkeypress="handleKeyPress(event)">
         
-        <button onclick="openNHentai()">Open nHentai</button>
+        <div class="button-group">
+            <button class="primary-btn" onclick="openNHentai()">Open nHentai</button>
+        </div>
+
+        <div class="sauce-list">
+            <h3>Sauce List</h3>
+            <input type="text" id="searchInput" class="search-box" placeholder="Search sauces..." onkeyup="searchSauces()">
+            <div style="max-height: 600px; overflow-y: auto;">
+                <table id="sauceTable">
+                    <thead>
+                        <tr>
+                            <th>Sauce #</th>
+                            <th>Name</th>
+                            <th>Tags</th>
+                            <th>Rating</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sauceTableBody">
+                        <!-- Sauce entries will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
         
         <div class="note">
             Enter the 6-digit code to open the corresponding nHentai gallery
@@ -74,6 +169,73 @@
     </div>
 
     <script>
+        // Your sauce list data
+        const sauceList = [
+            { number: '358725', name: 'Kimi to Issho', tags: 'Kemonomimi, Foxgirl, Pergnante', rating: '10/10' },
+            { number: '172197', name: 'Rabbit Hole', tags: 'Monster Girl, Bunny Girl, Sumata', rating: '9.9/10' },
+            { number: '354920', name: 'Shiroi Kemuri to Brim', tags: 'Maid, Smoking, Blowjob', rating: '9.5/10' },
+            { number: '306321', name: 'Dragon Girl', tags: 'Lizard Girl, Horns, Tail', rating: '8/10' },
+            { number: '301812', name: 'Mesuinu no Inraku', tags: 'Princess Connect Parody, Kemonomimi, Wolf Girl', rating: '8/10' },
+            { number: '103048', name: 'Chikako Obasan to Kedamono Mitai na Oikko', tags: 'Incest, Drugs, Cheating, Milf, R*pe', rating: '2/10' },
+            { number: '180443', name: 'Trap Honey', tags: 'MHA Parody, Yandere, R*pe', rating: '7/10' },
+            { number: '359126', name: 'The Joy of Breeding', tags: 'Nagatoro Parody, Harem, Anal, Comic', rating: '8.5/10' },
+            { number: '334544', name: 'MOUSOU THEATER 66', tags: 'Tonikawa Parody, Sole Female, Sole Male', rating: '8.5/10' },
+            { number: '144393', name: 'Ero Hon 3', tags: 'DxD Parody, School Uniform, Blowjob', rating: '8/10' },
+            { number: '365478', name: 'Mirror Collection 4', tags: 'Yuri, Selfcest', rating: '9/10' },
+            { number: '363967', name: 'Watashi-tachi no Fine', tags: 'Yuri, Manga', rating: '10/10' },
+            { number: '165457', name: 'HolyBell', tags: 'Yandere, Blackmail, HOLY THIGHS', rating: '9/10' },
+            { number: '366096', name: 'Kanraku', tags: 'Incest, Sister, Ponytail', rating: '7/10' },
+            { number: '366195', name: 'Itoko to Honki Seikou', tags: 'Incest, Cousin, Cheating', rating: '5/10' },
+            { number: '366178', name: 'Fuuzoku Renai', tags: 'Yaoi, Crossdressing, Tomgirl', rating: '6/10' },
+            { number: '366087', name: 'Toki & Meki -Romatta Sekai de Majiwaru Toiko-', tags: 'Exhibitionism, Lingerie, Time Stop', rating: '8/10' },
+            { number: '366062', name: 'Dere x Ero x Matome Hon', tags: 'Idolmaster Parody, FFM Threesome, Bikini', rating: '6/10' },
+            { number: '197420', name: 'Majimena Aitsu ni Ani Ken no Ore ga Oshiete Yareru Koto 2', tags: 'Swimsuit, Catgirl, Blackmail', rating: '9/10' },
+            { number: '366835', name: 'You\'ve Laid In Your Bed, Now Make It', tags: 'Hotpants, Blowjob, Pergnante', rating: '10/10' },
+            { number: '342265', name: 'Hakoniwa no Hoshizora', tags: 'Sole Male, Sole Female', rating: 'Too Good for one' },
+            { number: '349273', name: 'Laundry Rendezvous', tags: 'Big Booba, X-Ray, Twintails', rating: '9/10' },
+            { number: '357789', name: 'R*PE OF DEMON SLAYER 2', tags: 'Demon Slayer Parody, Mind Break, R*pe, Demon', rating: '6/10' },
+            { number: '309463', name: 'Koibashira Futanari Chinpo Onanie Hon', tags: 'Demon Slayer Parody, Futanari, Masturbation', rating: '7/10' },
+            { number: '289088', name: 'Oni ga Naitara', tags: 'Demon Slayer Parody, Incest, Sister', rating: '4/10' },
+            { number: '338347', name: 'R*PE OF DEMON SLAYER 3', tags: 'Demon Slayer Parody, Mind Break, R*pe, Demon', rating: '4/10' },
+            { number: '368320', name: 'Layered Emotion', tags: 'Full Color, Bikini, Swimsuit', rating: '9.5/10' },
+            { number: '369154', name: 'Teddy Steady', tags: 'Gyaru, Dark Skin, Mosaic Censorship', rating: '9.9/10' },
+            { number: '241018', name: 'Aisei Tenshi Love Mary', tags: 'So Much I\'m Not Listing Them All', rating: '7/10' },
+            { number: '326395', name: 'Echidna', tags: 'Rezero Parody, Cheerleader, Ahegao', rating: '7/10' },
+            { number: '365554', name: 'Succubus Maid no Mayuri-san', tags: 'Maid, Demon Girl, Huge Booba', rating: '8/10' },
+            { number: '213006', name: 'Succubus Vigne Onee-chan to Amaama Sex', tags: 'Gabriel Dropout Parody, Demon Girl, Femdom', rating: '6/10' },
+            { number: '97485', name: 'N.U.E.', tags: 'Touhou Parody, Futanari, Drugs, Japanese', rating: '2/10' },
+            { number: '369838', name: 'RabbitPartyOnline', tags: 'Small Booba', rating: '9.9/10' },
+            { number: '369979', name: 'An Other World Harem Paradise Extra Edition', tags: 'Nun, Harem, Group', rating: '8/10' },
+            { number: '267270', name: 'Virgin Chauwa!', tags: 'Virginity, Ahegao, Beauty Mark', rating: '9.5/10' },
+            { number: '100101', name: 'CROSSxDRESS Part Two', tags: 'Crossdressing, Maid, Blackmail', rating: '8/10' },
+            { number: '354768', name: 'My Younger Sister\'s Classmates and Seniors are Super Tall', tags: 'Tall Girl, Giantess, Femdom', rating: '7/10' },
+            { number: '255662', name: 'Ane Naru Mono Complete Works 1', tags: 'Demon Girl, Femdom, Bunny Girl', rating: '8/10' },
+            { number: '139808', name: 'Danke-Dankai Revolution', tags: 'Kantai Parody, Traps, Yaoi', rating: '7/10' },
+            { number: '186264', name: 'Kissdere', tags: 'Gyaru, Ahegao, Tomboy', rating: '7/10' },
+            { number: '371183', name: 'Sayonara Poni-te-ru', tags: 'Hairjob, Bloomers, Gymshorts', rating: '5/10' },
+            { number: '354133', name: 'Exorcise Time', tags: 'Genshin Impact Parody, Blowjob, Twin Tails', rating: '8/10' },
+            { number: '369123', name: 'Nyanptation', tags: 'Big Booba, Cheating, Big PP', rating: '7/10' },
+            { number: '342606', name: 'Miku ga Kisei Jijitsu o Tsukuru Hon', tags: 'QQ Parody, Full Color, Pantyhose', rating: '5/10' },
+            { number: '290975', name: 'Sisters Panic', tags: 'BGS Parody, Kemonomimi, Body Swap', rating: '4/10' },
+            { number: '308391', name: 'Houkago, Akogare no Senpai ni Tsurerarete-', tags: 'Femdom, Ahegao, Facesitting', rating: '9/10' },
+            { number: '173238', name: 'Monokuma File', tags: 'Danganronpa Parody, Stockings, School Uniform', rating: '2/10' },
+            { number: '372748', name: 'Neko no Kimochi', tags: 'Yuri, Kemonomimi, Catgirl', rating: '9/10' },
+            { number: '300282', name: 'Konya dake wa Soba ni Inasai', tags: 'Piss, Glasses', rating: '9.5/10' },
+            { number: '368408', name: 'Komi Can\'t Cummunicate', tags: 'Komi-San Parody, R*pe, Blackmail', rating: '7/10' },
+            { number: '325949', name: 'Huhenka-Kei Joshi!!', tags: 'HxH Parody', rating: '6/10' },
+            { number: '296112', name: 'AAA', tags: 'ASTOLFO!!!, Yaoi, Selfcest', rating: '10/10' },
+            { number: '382384', name: 'Itoshiku Naru made Matte ite', tags: 'Bang Dream! Parody, Yuri', rating: '10/10' },
+            { number: '388535', name: 'Sono Bisque Doll wa H o Suru', tags: 'Dress-Up Darling Parody, Bikini, Vanilla', rating: '10/10' },
+            { number: '389467', name: 'Doujin Sakka wa Cosplay Ecchi no Yume o Miru ka', tags: 'Cosplay, Kemonomimi, Big Booba', rating: '9.2/10' },
+            { number: '367297', name: 'Oblaat - Indirect kiss & sex & love', tags: 'Masked Face, Kissing', rating: '9.9/10' },
+            { number: '392035', name: 'Teddy Steady One More!!', tags: 'Gyaru, Dark Skin, Mosaic Censorship', rating: '10/10' },
+            { number: '392936', name: 'Oshikake Youko-sama', tags: 'Kemonomimi, Foxgirl, Kimono', rating: '9/10' },
+            { number: '395773', name: 'Gyaru Yuina-chan to Ecchi', tags: 'Gyaru, Stockings, School Uniform', rating: '9.5/10' },
+            { number: '396248', name: 'Besuto Kappuru no Jouken', tags: 'Blowjob, School Uniform', rating: '9/10' },
+            { number: '397363', name: 'Dekoboko na Kankei', tags: 'Blowjob, School Uniform', rating: '10/10' }
+            // Add more entries as needed from your PDF...
+        ];
+
         function openNHentai() {
             const baseURL = 'https://nhentai.net/g/';
             const code = document.getElementById('codeInput').value.trim();
@@ -86,6 +248,64 @@
                 alert('Please enter a valid 6-digit code (numbers only).');
             }
         }
+
+        function openSauce(code) {
+            const baseURL = 'https://nhentai.net/g/';
+            const finalURL = baseURL + code + '/';
+            window.open(finalURL, '_blank');
+        }
+
+        function populateSauceTable() {
+            const tableBody = document.getElementById('sauceTableBody');
+            tableBody.innerHTML = '';
+            
+            sauceList.forEach(sauce => {
+                const row = document.createElement('tr');
+                
+                // Get rating class for color coding
+                let ratingClass = '';
+                const ratingValue = parseFloat(sauce.rating);
+                if (ratingValue >= 9) ratingClass = 'rating-10';
+                else if (ratingValue >= 8) ratingClass = 'rating-9';
+                else if (ratingValue >= 7) ratingClass = 'rating-8';
+                else if (ratingValue >= 6) ratingClass = 'rating-7';
+                else ratingClass = 'rating-low';
+                
+                row.innerHTML = `
+                    <td>${sauce.number}</td>
+                    <td>${sauce.name}</td>
+                    <td>${sauce.tags}</td>
+                    <td class="rating ${ratingClass}">${sauce.rating}</td>
+                    <td><button class="open-btn" onclick="openSauce('${sauce.number}')">Open</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function searchSauces() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('sauceTable');
+            const tr = table.getElementsByTagName('tr');
+            
+            for (let i = 1; i < tr.length; i++) {
+                const tdNumber = tr[i].getElementsByTagName('td')[0];
+                const tdName = tr[i].getElementsByTagName('td')[1];
+                const tdTags = tr[i].getElementsByTagName('td')[2];
+                if (tdNumber || tdName || tdTags) {
+                    const numberText = tdNumber.textContent || tdNumber.innerText;
+                    const nameText = tdName.textContent || tdName.innerText;
+                    const tagsText = tdTags.textContent || tdTags.innerText;
+                    if (numberText.toLowerCase().indexOf(filter) > -1 || 
+                        nameText.toLowerCase().indexOf(filter) > -1 || 
+                        tagsText.toLowerCase().indexOf(filter) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
         
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
@@ -93,9 +313,10 @@
             }
         }
         
-        // Auto-focus on input when page loads
+        // Auto-focus on input when page loads and populate table
         window.onload = function() {
             document.getElementById('codeInput').focus();
+            populateSauceTable();
         }
     </script>
 </body>
