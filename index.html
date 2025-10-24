@@ -66,6 +66,15 @@
         .secondary-btn:hover {
             background-color: #545b62;
         }
+        .sort-btn {
+            background-color: #17a2b8;
+            color: white;
+            padding: 8px 16px;
+            margin-left: 10px;
+        }
+        .sort-btn:hover {
+            background-color: #138496;
+        }
         .sauce-list {
             margin-top: 30px;
             padding: 20px;
@@ -76,6 +85,29 @@
             margin-top: 0;
             color: #333;
             text-align: center;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .search-container {
+            flex: 1;
+            margin-right: 15px;
+        }
+        .sort-container {
+            display: flex;
+            align-items: center;
+        }
+        .sort-container label {
+            margin-right: 10px;
+            color: #555;
+        }
+        select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         table {
             width: 100%;
@@ -92,6 +124,10 @@
             color: white;
             position: sticky;
             top: 0;
+            cursor: pointer;
+        }
+        th:hover {
+            background-color: #ff5252;
         }
         tr:hover {
             background-color: #f5f5f5;
@@ -117,7 +153,6 @@
         .rating-7 { color: #6c757d; }
         .rating-low { color: #dc3545; }
         .search-box {
-            margin-bottom: 15px;
             padding: 10px;
             width: 100%;
             border: 1px solid #ddd;
@@ -144,15 +179,30 @@
 
         <div class="sauce-list">
             <h3>Sauce List</h3>
-            <input type="text" id="searchInput" class="search-box" placeholder="Search sauces..." onkeyup="searchSauces()">
+            <div class="controls">
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-box" placeholder="Search sauces..." onkeyup="searchSauces()">
+                </div>
+                <div class="sort-container">
+                    <label for="sortSelect">Sort by:</label>
+                    <select id="sortSelect" onchange="sortSauces()">
+                        <option value="rating-desc">Highest Rating</option>
+                        <option value="rating-asc">Lowest Rating</option>
+                        <option value="number-desc">Newest First</option>
+                        <option value="number-asc">Oldest First</option>
+                        <option value="name-asc">Name A-Z</option>
+                        <option value="name-desc">Name Z-A</option>
+                    </select>
+                </div>
+            </div>
             <div style="max-height: 600px; overflow-y: auto;">
                 <table id="sauceTable">
                     <thead>
                         <tr>
-                            <th>Sauce #</th>
-                            <th>Name</th>
-                            <th>Tags</th>
-                            <th>Rating</th>
+                            <th onclick="sortByColumn('number')">Sauce #</th>
+                            <th onclick="sortByColumn('name')">Name</th>
+                            <th onclick="sortByColumn('tags')">Tags</th>
+                            <th onclick="sortByColumn('rating')">Rating</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -233,8 +283,10 @@
             { number: '395773', name: 'Gyaru Yuina-chan to Ecchi', tags: 'Gyaru, Stockings, School Uniform', rating: '9.5/10' },
             { number: '396248', name: 'Besuto Kappuru no Jouken', tags: 'Blowjob, School Uniform', rating: '9/10' },
             { number: '397363', name: 'Dekoboko na Kankei', tags: 'Blowjob, School Uniform', rating: '10/10' }
-            // Add more entries as needed from your PDF...
         ];
+
+        let currentSort = 'rating-desc';
+        let currentSauceList = [...sauceList];
 
         function openNHentai() {
             const baseURL = 'https://nhentai.net/g/';
@@ -255,16 +307,67 @@
             window.open(finalURL, '_blank');
         }
 
+        function getRatingValue(rating) {
+            if (rating === 'Too Good for one') return 11;
+            const match = rating.match(/(\d+(?:\.\d+)?)/);
+            return match ? parseFloat(match[1]) : 0;
+        }
+
+        function sortSauces() {
+            const sortSelect = document.getElementById('sortSelect');
+            currentSort = sortSelect.value;
+            
+            switch(currentSort) {
+                case 'rating-desc':
+                    currentSauceList.sort((a, b) => getRatingValue(b.rating) - getRatingValue(a.rating));
+                    break;
+                case 'rating-asc':
+                    currentSauceList.sort((a, b) => getRatingValue(a.rating) - getRatingValue(b.rating));
+                    break;
+                case 'number-desc':
+                    currentSauceList.sort((a, b) => parseInt(b.number) - parseInt(a.number));
+                    break;
+                case 'number-asc':
+                    currentSauceList.sort((a, b) => parseInt(a.number) - parseInt(b.number));
+                    break;
+                case 'name-asc':
+                    currentSauceList.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'name-desc':
+                    currentSauceList.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+            }
+            
+            populateSauceTable();
+        }
+
+        function sortByColumn(column) {
+            switch(column) {
+                case 'rating':
+                    currentSort = currentSort === 'rating-desc' ? 'rating-asc' : 'rating-desc';
+                    break;
+                case 'number':
+                    currentSort = currentSort === 'number-desc' ? 'number-asc' : 'number-desc';
+                    break;
+                case 'name':
+                    currentSort = currentSort === 'name-desc' ? 'name-asc' : 'name-desc';
+                    break;
+            }
+            
+            document.getElementById('sortSelect').value = currentSort;
+            sortSauces();
+        }
+
         function populateSauceTable() {
             const tableBody = document.getElementById('sauceTableBody');
             tableBody.innerHTML = '';
             
-            sauceList.forEach(sauce => {
+            currentSauceList.forEach(sauce => {
                 const row = document.createElement('tr');
                 
                 // Get rating class for color coding
                 let ratingClass = '';
-                const ratingValue = parseFloat(sauce.rating);
+                const ratingValue = getRatingValue(sauce.rating);
                 if (ratingValue >= 9) ratingClass = 'rating-10';
                 else if (ratingValue >= 8) ratingClass = 'rating-9';
                 else if (ratingValue >= 7) ratingClass = 'rating-8';
@@ -285,26 +388,18 @@
         function searchSauces() {
             const input = document.getElementById('searchInput');
             const filter = input.value.toLowerCase();
-            const table = document.getElementById('sauceTable');
-            const tr = table.getElementsByTagName('tr');
             
-            for (let i = 1; i < tr.length; i++) {
-                const tdNumber = tr[i].getElementsByTagName('td')[0];
-                const tdName = tr[i].getElementsByTagName('td')[1];
-                const tdTags = tr[i].getElementsByTagName('td')[2];
-                if (tdNumber || tdName || tdTags) {
-                    const numberText = tdNumber.textContent || tdNumber.innerText;
-                    const nameText = tdName.textContent || tdName.innerText;
-                    const tagsText = tdTags.textContent || tdTags.innerText;
-                    if (numberText.toLowerCase().indexOf(filter) > -1 || 
-                        nameText.toLowerCase().indexOf(filter) > -1 || 
-                        tagsText.toLowerCase().indexOf(filter) > -1) {
-                        tr[i].style.display = '';
-                    } else {
-                        tr[i].style.display = 'none';
-                    }
-                }
+            if (filter === '') {
+                currentSauceList = [...sauceList];
+            } else {
+                currentSauceList = sauceList.filter(sauce => 
+                    sauce.number.toLowerCase().includes(filter) || 
+                    sauce.name.toLowerCase().includes(filter) || 
+                    sauce.tags.toLowerCase().includes(filter)
+                );
             }
+            
+            sortSauces();
         }
         
         function handleKeyPress(event) {
@@ -316,7 +411,7 @@
         // Auto-focus on input when page loads and populate table
         window.onload = function() {
             document.getElementById('codeInput').focus();
-            populateSauceTable();
+            sortSauces(); // This will populate the table with initial sort
         }
     </script>
 </body>
